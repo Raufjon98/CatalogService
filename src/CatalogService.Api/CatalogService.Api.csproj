@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+      <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="MagicOnion.Server" Version="7.0.9" />
+    <PackageReference Include="MediatR" Version="11.0.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.7" />
+    <PackageReference Include="MongoDB.Driver" Version="3.5.2" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.12.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Domain\" />
+    <Folder Include="Features\Common\Validation\" />
+    <Folder Include="Infrastructure\Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="CustomerService.Api\appsettings.Development.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\appsettings.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\bin\Debug\net9.0\appsettings.Development.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\bin\Debug\net9.0\appsettings.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\bin\Debug\net9.0\CustomerApi.deps.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\bin\Debug\net9.0\CustomerApi.runtimeconfig.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\bin\Debug\net9.0\CustomerApi.staticwebassets.endpoints.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\obj\Customer.Api.csproj.nuget.dgspec.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\obj\CustomerApi.csproj.nuget.dgspec.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\obj\CustomerService.Api.csproj.nuget.dgspec.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\obj\Debug\net9.0\CustomerApi.sourcelink.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\obj\Debug\net9.0\rjsmcshtml.dswa.cache.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\obj\Debug\net9.0\rjsmrazor.dswa.cache.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\obj\Debug\net9.0\rpswa.dswa.cache.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\obj\Debug\net9.0\staticwebassets.build.endpoints.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\obj\Debug\net9.0\staticwebassets.build.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\obj\project.assets.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\obj\project.packagespec.json" />
+    <_ContentIncludedByDefault Remove="CustomerService.Api\Properties\launchSettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CatalogService.Contracts\CatalogService.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>
