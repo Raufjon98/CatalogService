@@ -1,8 +1,10 @@
 using CatalogService.Api.Domain.Entities;
 using CatalogService.Api.Features.Common.Exceptions;
 using CatalogService.Api.Features.Common.interfaces;
+using CatalogService.Contracts.Food.Events;
 using CatalogService.Contracts.Food.Requests;
 using CatalogService.Contracts.Food.Responses;
+using MassTransit;
 using MediatR;
 
 namespace CatalogService.Api.Features.Foods.Commands;
@@ -11,10 +13,12 @@ public record UpdateFoodCommand(string FoodId, CreateFoodRequest CreateFoodDto) 
 public class UpdatefoodCommandHandler : IRequestHandler<UpdateFoodCommand, FoodResponse>
 {
     private readonly IFoodRepository _foodRepository;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public UpdatefoodCommandHandler(IFoodRepository foodRepository)
+    public UpdatefoodCommandHandler(IFoodRepository foodRepository, IPublishEndpoint publishEndpoint)
     {
         _foodRepository = foodRepository;
+        _publishEndpoint = publishEndpoint;
     }
     public async Task<FoodResponse> Handle(UpdateFoodCommand request, CancellationToken cancellationToken)
     {
@@ -35,6 +39,14 @@ public class UpdatefoodCommandHandler : IRequestHandler<UpdateFoodCommand, FoodR
         {
             throw new Exception("Could not update food");
         }
+
+        await _publishEndpoint.Publish(
+            new FoodUpdatedEvent
+            {
+                Id = result.Id,
+                UpdatedOnUtc = DateTime.UtcNow
+            },
+            cancellationToken);
         
         FoodResponse updatedFood = new FoodResponse()
         {

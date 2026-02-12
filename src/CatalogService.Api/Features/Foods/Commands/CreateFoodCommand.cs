@@ -1,7 +1,9 @@
 using CatalogService.Api.Domain.Entities;
 using CatalogService.Api.Features.Common.interfaces;
+using CatalogService.Contracts.Food.Events;
 using CatalogService.Contracts.Food.Requests;
 using CatalogService.Contracts.Food.Responses;
+using MassTransit;
 using MediatR;
 
 namespace CatalogService.Api.Features.Foods.Commands;
@@ -11,10 +13,12 @@ public record CreateFoodCommand(CreateFoodRequest CreateFoodDto) : IRequest<Food
 public class CreateFoodCommandHandler : IRequestHandler<CreateFoodCommand, FoodResponse>
 {
     private readonly IFoodRepository _foodRepository;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public CreateFoodCommandHandler(IFoodRepository foodRepository)
+    public CreateFoodCommandHandler(IFoodRepository foodRepository, IPublishEndpoint publishEndpoint)
     {
         _foodRepository = foodRepository;
+        _publishEndpoint = publishEndpoint;
     }
     public async Task<FoodResponse> Handle(CreateFoodCommand request, CancellationToken cancellationToken)
     {
@@ -32,6 +36,14 @@ public class CreateFoodCommandHandler : IRequestHandler<CreateFoodCommand, FoodR
         {
             throw new Exception("Couldn't create food");
         }
+
+        await _publishEndpoint.Publish(
+            new FoodCreatedEvent
+            {
+                Id = food.Id,
+                CreatedOnUtc = DateTime.UtcNow
+            },
+            cancellationToken);
         
         FoodResponse createdFood = new FoodResponse()
         {

@@ -1,5 +1,7 @@
 using CatalogService.Api.Features.Common.interfaces;
+using CatalogService.Contracts.Food.Events;
 using CatalogService.Contracts.Food.Responses;
+using MassTransit;
 using MediatR;
 
 namespace CatalogService.Api.Features.Foods.Commands;
@@ -9,10 +11,12 @@ public record UpdateFoodAvailabilityCommand(string Id, bool IsAvailbale) :  IReq
 public class UpdateFoodAvailabilityCommandHandler : IRequestHandler<UpdateFoodAvailabilityCommand, FoodResponse>
 {
     private readonly IFoodRepository _foodRepository;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public UpdateFoodAvailabilityCommandHandler(IFoodRepository foodRepository)
+    public UpdateFoodAvailabilityCommandHandler(IFoodRepository foodRepository, IPublishEndpoint publishEndpoint)
     {
         _foodRepository = foodRepository;
+        _publishEndpoint = publishEndpoint;
     }
     public async Task<FoodResponse> Handle(UpdateFoodAvailabilityCommand request, CancellationToken cancellationToken)
     {
@@ -21,6 +25,15 @@ public class UpdateFoodAvailabilityCommandHandler : IRequestHandler<UpdateFoodAv
         {
             throw new Exception("Couldn't update food");
         }
+
+        await _publishEndpoint.Publish(
+            new FoodUpdatedEvent
+            {
+                Id = request.Id,
+                UpdatedOnUtc = DateTime.UtcNow
+            },
+            cancellationToken);
+        
         FoodResponse updatedFood = new FoodResponse()
         {
             Id = result.Id,

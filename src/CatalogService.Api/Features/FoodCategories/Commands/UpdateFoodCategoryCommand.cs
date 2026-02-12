@@ -1,7 +1,9 @@
 using CatalogService.Api.Domain.Entities;
 using CatalogService.Api.Features.Common.interfaces;
+using CatalogService.Contracts.FoodCategory.Events;
 using CatalogService.Contracts.FoodCategory.Requests;
 using CatalogService.Contracts.FoodCategory.Responses;
+using MassTransit;
 using MediatR;
 
 namespace CatalogService.Api.Features.FoodCategories.Commands;
@@ -10,10 +12,12 @@ public record UpdateFoodCategoryCommand(string Id, CreateFoodCategoryRequest Foo
 public class UpdateFoodCategoryCommandHandler : IRequestHandler<UpdateFoodCategoryCommand, FoodCategoryResponse>
 {
     private readonly IFoodCategoryRepository _foodCategoryRepository;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public UpdateFoodCategoryCommandHandler(IFoodCategoryRepository foodCategoryRepository)
+    public UpdateFoodCategoryCommandHandler(IFoodCategoryRepository foodCategoryRepository, IPublishEndpoint publishEndpoint)
     {
         _foodCategoryRepository = foodCategoryRepository;
+        _publishEndpoint = publishEndpoint;
     }
     public async Task<FoodCategoryResponse> Handle(UpdateFoodCategoryCommand request, CancellationToken cancellationToken)
     {
@@ -29,6 +33,14 @@ public class UpdateFoodCategoryCommandHandler : IRequestHandler<UpdateFoodCatego
         {
             throw new Exception("Couldn't update food category");
         }
+
+        await _publishEndpoint.Publish(
+            new FoodCategoryUpdatedEvent
+            {
+                Id = foodCategory.Id,
+                UpdatedOnUtc = DateTime.UtcNow
+            },
+            cancellationToken);
         
         FoodCategoryResponse foodCategoryDto = new FoodCategoryResponse()
         {

@@ -1,6 +1,8 @@
 using CatalogService.Api.Features.Common.interfaces;
+using CatalogService.Contracts.Food.Events;
 using CatalogService.Contracts.Food.Requests;
 using CatalogService.Contracts.Food.Responses;
+using MassTransit;
 using MediatR;
 
 namespace CatalogService.Api.Features.Foods.Commands;
@@ -10,10 +12,12 @@ public record IncreaseFoodStockCommand(List<FoodStockRequest> Requests) : IReque
 public class IncreaseFoodStockCommandHandler : IRequestHandler<IncreaseFoodStockCommand, List<FoodResponse>>
 {
     private readonly IFoodRepository _foodRepository;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public IncreaseFoodStockCommandHandler(IFoodRepository foodRepository)
+    public IncreaseFoodStockCommandHandler(IFoodRepository foodRepository, IPublishEndpoint publishEndpoint)
     {
         _foodRepository = foodRepository;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task<List<FoodResponse>> Handle(IncreaseFoodStockCommand command, CancellationToken cancellationToken)
@@ -29,6 +33,15 @@ public class IncreaseFoodStockCommandHandler : IRequestHandler<IncreaseFoodStock
 
             food.Stock += quantity;
             var result = await _foodRepository.UpdateAsync(food, cancellationToken);
+
+            await _publishEndpoint.Publish(
+                new FoodUpdatedEvent
+                {
+                    Id = result.Id,
+                    UpdatedOnUtc = DateTime.UtcNow
+                },
+                cancellationToken);
+            
             foodResponses.Add(new FoodResponse
             {
                 Id = result.Id,
