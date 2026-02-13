@@ -4,9 +4,11 @@ using CatalogService.Api.Features.Common.interfaces;
 using CatalogService.Api.Features.Data;
 using CatalogService.Api.Infrastructure.Interceptors;
 using CatalogService.Api.Infrastructure.Repositories;
+using MassTransit;
 using Scalar.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(options =>
@@ -15,6 +17,17 @@ builder.WebHost.ConfigureKestrel(options =>
     {
         listenOptions.UseHttps();              
         listenOptions.Protocols = HttpProtocols.Http2;
+    });
+});
+var rabbitConnectionString = builder.Configuration["MessageBroker:Host"];
+
+builder.Services.AddMassTransit(configuration =>
+{
+    configuration.UsingRabbitMq((ctx, cfg) =>
+    {
+        cfg.Host(rabbitConnectionString);
+        cfg.ExchangeType = ExchangeType.Fanout;
+        cfg.ConfigureEndpoints(ctx);
     });
 });
 

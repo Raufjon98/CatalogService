@@ -1,8 +1,10 @@
 using CatalogService.Api.Domain.Entities;
 using CatalogService.Api.Features.Common.Exceptions;
 using CatalogService.Api.Features.Common.interfaces;
+using CatalogService.Contracts.Restaurant.Events;
 using CatalogService.Contracts.Restaurant.Requests;
 using CatalogService.Contracts.Restaurant.Responses;
+using MassTransit;
 using MediatR;
 
 namespace CatalogService.Api.Features.Restaurants.Commands;
@@ -13,10 +15,12 @@ public record UpdateRestaurantCommand(string RestaurantId, CreateRestaurantReque
 public class UpdateRestaurantCommandHandler : IRequestHandler<UpdateRestaurantCommand, RestaurantResponse>
 {
     private readonly IRestaurantRepository _restaurantRepository;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public UpdateRestaurantCommandHandler(IRestaurantRepository restaurantRepository)
+    public UpdateRestaurantCommandHandler(IRestaurantRepository restaurantRepository, IPublishEndpoint publishEndpoint)
     {
         _restaurantRepository = restaurantRepository;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task<RestaurantResponse> Handle(UpdateRestaurantCommand request, CancellationToken cancellationToken)
@@ -40,6 +44,14 @@ public class UpdateRestaurantCommandHandler : IRequestHandler<UpdateRestaurantCo
         {
             throw new Exception("Couldn't update restaurant.");
         }
+
+        await _publishEndpoint.Publish(
+            new RestaurantUpdatedEvent
+            {
+                Id = restaurant.Id,
+                UpdatedOnUtc = DateTime.UtcNow
+            },
+            cancellationToken);
 
         RestaurantResponse restaurantResponse = new RestaurantResponse()
         {

@@ -1,7 +1,9 @@
 using CatalogService.Api.Domain.Entities;
 using CatalogService.Api.Features.Common.interfaces;
+using CatalogService.Contracts.Cuisine.Events;
 using CatalogService.Contracts.Cuisine.Requests;
 using CatalogService.Contracts.Cuisine.Responses;
+using MassTransit;
 using MediatR;
 
 namespace CatalogService.Api.Features.Cuisines.Commands;
@@ -11,10 +13,12 @@ public record CreateCuisineCommad(CreateCuisineRequest Cuisine) : IRequest<Cuisi
 public class CreateCuisineCommandHandler : IRequestHandler<CreateCuisineCommad, CuisineResponse>
 {
     private readonly ICuisineRepository _cuisineRepository;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public CreateCuisineCommandHandler(ICuisineRepository cuisineRepository)
+    public CreateCuisineCommandHandler(ICuisineRepository cuisineRepository, IPublishEndpoint publishEndpoint)
     {
         _cuisineRepository = cuisineRepository;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task<CuisineResponse> Handle(CreateCuisineCommad request, CancellationToken cancellationToken)
@@ -30,6 +34,13 @@ public class CreateCuisineCommandHandler : IRequestHandler<CreateCuisineCommad, 
             throw new Exception("Failed to create cuisine");
         }
 
+        await _publishEndpoint.Publish(
+            new CuisineCreatedEvent
+            {
+                Id = result.Id,
+                CreatedOnUtc = DateTime.UtcNow
+            }, cancellationToken);
+            
         CuisineResponse cuisineResponse = new CuisineResponse()
         {
             Id = result.Id,
