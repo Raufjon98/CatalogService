@@ -58,7 +58,6 @@ public class FoodRepository : IFoodRepository
         if (ids is {Length: > 0})
         {
             var filter = Builders<Food>.Filter.And(Builders<Food>.Filter.In(f=>f.Id, ids),
-                Builders<Food>.Filter.Gt(f=>f.Stock,0), 
                 Builders<Food>.Filter.Eq(f=>f.IsDeleted, false));
             
             return await _foods.Find(filter).ToListAsync(cancellationToken: cancellationToken);
@@ -70,7 +69,6 @@ public class FoodRepository : IFoodRepository
     public async Task<Food?> GetAsync(string id, CancellationToken cancellationToken = default)
     {
         var filter = Builders<Food>.Filter.And(Builders<Food>.Filter.Eq(x => x.Id, id),
-            Builders<Food>.Filter.Gt(f => f.Stock, 0),
             Builders<Food>.Filter.Eq(f => f.IsDeleted, false));
         
         var food = await _foods.Find(filter).FirstOrDefaultAsync(cancellationToken);
@@ -81,7 +79,6 @@ public class FoodRepository : IFoodRepository
     {
         var filter = Builders<Food>.Filter.And(Builders<Food>.Filter.Eq(f => f.FoodCategoryId, categoryId),
             Builders<Food>.Filter.Eq(f => f.Availability, true), 
-            Builders<Food>.Filter.Gt(f => f.Stock, 0),
             Builders<Food>.Filter.Eq(f => f.IsDeleted, false));
         return await _foods.Find(filter).ToListAsync(cancellationToken);
     }
@@ -90,7 +87,6 @@ public class FoodRepository : IFoodRepository
     {
         var filter = Builders<Food>.Filter.And(Builders<Food>.Filter.Eq(f => f.RestaurantId, restaurantId),
             Builders<Food>.Filter.Eq(f => f.Availability, true), 
-            Builders<Food>.Filter.Gt(f => f.Stock, 0),
             Builders<Food>.Filter.Eq(f => f.IsDeleted, false));
         return await _foods.Find(filter).ToListAsync(cancellationToken);
     }

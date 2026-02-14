@@ -40,7 +40,7 @@ public class CreateFoodCommandHandler : IRequestHandler<CreateFoodCommand, FoodR
         await _publishEndpoint.Publish(
             new FoodCreatedEvent
             {
-                Id = food.Id,
+                Id = result.Id,
                 CreatedOnUtc = DateTime.UtcNow
             },
             cancellationToken);
