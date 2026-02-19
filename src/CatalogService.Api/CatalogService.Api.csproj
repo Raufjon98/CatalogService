@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageReference Include="MagicOnion.Server" Version="7.0.9" />
     <PackageReference Include="MassTransit" Version="8" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="8" />
@@ -21,7 +22,6 @@
 
   <ItemGroup>
     <Folder Include="Domain\" />
-    <Folder Include="Features\Common\Validation\" />
     <Folder Include="Infrastructure\Services\" />
   </ItemGroup>
 
