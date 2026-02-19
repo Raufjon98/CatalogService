@@ -1,13 +1,16 @@
-using System.Reflection;
 using CatalogService.Api.Extensions;
+using CatalogService.Api.Features.Common.Behaviour;
 using CatalogService.Api.Features.Common.interfaces;
 using CatalogService.Api.Features.Data;
+using CatalogService.Api.Features.Foods.Queries;
 using CatalogService.Api.Infrastructure.Interceptors;
 using CatalogService.Api.Infrastructure.Repositories;
+using FluentValidation;
 using MassTransit;
 using Scalar.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using MongoDB.Driver;
 using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,36 +18,46 @@ builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(5001, listenOptions =>
     {
-        listenOptions.UseHttps();              
+        listenOptions.UseHttps();
         listenOptions.Protocols = HttpProtocols.Http2;
     });
 });
 var rabbitConnectionString = builder.Configuration["MessageBroker:Host"];
 
-builder.Services.AddMassTransit(configuration =>
+if (!builder.Environment.IsEnvironment("IntegrationTest"))
 {
-    configuration.UsingRabbitMq((ctx, cfg) =>
+    builder.Services.AddMassTransit(configuration =>
     {
-        cfg.Host(rabbitConnectionString);
-        cfg.ExchangeType = ExchangeType.Fanout;
-        cfg.ConfigureEndpoints(ctx);
+        configuration.UsingRabbitMq((ctx, cfg) =>
+        {
+            cfg.Host(rabbitConnectionString);
+            cfg.ExchangeType = ExchangeType.Fanout;
+            cfg.ConfigureEndpoints(ctx);
+        });
     });
-});
+}
 
 builder.Services.AddOpenApi();
+
+builder.Services.AddSingleton<IMongoClient>(_ =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("MongoDb")
+                           ?? throw new InvalidOperationException("MongoDB connection string 'MongoDb' is not configured.");
+    return new MongoClient(connectionString);
+});
+
 builder.Services.AddSingleton<MongoDbService>();
 builder.Services.AddScoped<IFoodRepository, FoodRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<IFoodCategoryRepository,FoodCategoryRepository>();
+builder.Services.AddScoped<IFoodCategoryRepository, FoodCategoryRepository>();
 builder.Services.AddScoped<ICuisineRepository, CuisineRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IRestaurantRepository, RestaurantRepository>();
-builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
+builder.Services.AddMediatR(typeof(IApiMarker).Assembly);
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+builder.Services.AddValidatorsFromAssembly(typeof(IApiMarker).Assembly);
 
-builder.Services.AddGrpc(options =>
-{
-    options.Interceptors.Add<ExceptionInterceptor>();
-});
+builder.Services.AddGrpc(options => { options.Interceptors.Add<ExceptionInterceptor>(); });
 builder.Services.AddMagicOnion();
 
 var app = builder.Build();
@@ -70,4 +83,3 @@ app.MapGet("/mongo/ping", (MongoDbService mongoDbService) =>
 app.MapMagicOnionService();
 
 app.Run();
-

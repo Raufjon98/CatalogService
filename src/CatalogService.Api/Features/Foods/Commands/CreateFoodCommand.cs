@@ -32,11 +32,6 @@ public class CreateFoodCommandHandler : IRequestHandler<CreateFoodCommand, FoodR
         };
         var result = await _foodRepository.CreateAsync(food, cancellationToken: cancellationToken);
 
-        if (result is null)
-        {
-            throw new Exception("Couldn't create food");
-        }
-
         await _publishEndpoint.Publish(
             new FoodCreatedEvent
             {
