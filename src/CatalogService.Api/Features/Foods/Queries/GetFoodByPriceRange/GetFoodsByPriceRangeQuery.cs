@@ -4,8 +4,8 @@ using MediatR;
 
 namespace CatalogService.Api.Features.Foods.Queries;
 
-public record GetFooodsByPriceRangeQuery(decimal MinValue, decimal MaxValue) : IRequest<List<FoodResponse>>;
-public class GetFooodsByPriceRangeQueryHandler : IRequestHandler<GetFooodsByPriceRangeQuery, List<FoodResponse>>
+public record GetFoodsByPriceRangeQuery(decimal MinValue, decimal MaxValue) : IRequest<List<FoodResponse>>;
+public class GetFooodsByPriceRangeQueryHandler : IRequestHandler<GetFoodsByPriceRangeQuery, List<FoodResponse>>
 {
     private readonly IFoodRepository _foodRepository;
 
@@ -13,7 +13,7 @@ public class GetFooodsByPriceRangeQueryHandler : IRequestHandler<GetFooodsByPric
     {
         _foodRepository = foodRepository;
     }
-    public async Task<List<FoodResponse>> Handle(GetFooodsByPriceRangeQuery request, CancellationToken cancellationToken)
+    public async Task<List<FoodResponse>> Handle(GetFoodsByPriceRangeQuery request, CancellationToken cancellationToken)
     {
         var foods = await _foodRepository.GetByPriceRangeAsync(request.MinValue, request.MaxValue, cancellationToken);
         List<FoodResponse> result = new List<FoodResponse>();
