@@ -23,11 +23,13 @@ public class UpdatefoodCommandHandler : IRequestHandler<UpdateFoodCommand, FoodR
     public async Task<FoodResponse> Handle(UpdateFoodCommand request, CancellationToken cancellationToken)
     {
         var food = await _foodRepository.GetAsync(request.FoodId, cancellationToken);
+        
         if (food == null)
         {
             throw new NotFoundException(nameof(Food), request.FoodId);
         }
-        food.Name = request.CreateFoodDto.Name;
+        
+        food.Name = request.CreateFoodDto.Name!;
         food.Stock = request.CreateFoodDto.Stock;
         food.FoodCategoryId = request.CreateFoodDto.FoodCategoryId;
         food.RestaurantId = request.CreateFoodDto.restaurantId;

@@ -6,7 +6,7 @@ namespace CatalogService.Contracts.Food.Requests;
 public record CreateFoodRequest
 {
     [Key(0)]
-    public required string Name { get; set; }
+    public string? Name { get; set; }
     [Key(1)]
     public required string FoodCategoryId { get; set; }
     [Key(2)]
